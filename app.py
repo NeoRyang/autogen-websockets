@@ -79,8 +79,12 @@ class ConnectionManager:
     def __init__(self):
         self.active_connections: Dict[str, WebSocket] = {}
 
-    async def connect(self, websocket: WebSocket):
+    def connect(self, websocket: WebSocket):
         client_id = str(uuid.uuid4())
+        self.active_connections[client_id] = websocket
+
+    def connection(self, client_id: str, websocket: WebSocket):
+        print("active_connections: ", client_id)
         self.active_connections[client_id] = websocket
 
     def disconnect(self, client_id: str):
@@ -103,6 +107,8 @@ manager = ConnectionManager()
 @app.websocket("/ws/{client_id}")
 async def websocket_endpoint(websocket: WebSocket, client_id: str):
     await websocket.accept()  # Accept WebSocket connection
+    print(f"websocket {client_id} accepted")
+    manager.connection(client_id=client_id, websocket=websocket)
     try:
         while True:
             data = await websocket.receive_text()
